@@ -35,13 +35,13 @@ class Bacteria(Point):
 		self.index = 0
 
 		class cost:
-			move = random(20,200)/100
-			mutation = 5
+			move = random(100,400)/100
+			mutation = 3
 			copy = 50
 
 		self.cost = cost
 		self.enegry = random(7,15)
-		self.efficiency = 2
+		self.efficiency = 1
 
 	def get_direction(self, x):
 		if x == 1:   return  1,  0
@@ -52,27 +52,25 @@ class Bacteria(Point):
 
 	def get_random_gen(self):
 		x = random(0,99)
-		if x >= 0 and x < 75:    # ген передвижения с шансом 75%
-			return (1, random(1,4)) 
 
-		elif x >= 75 and x < 80: # ген генерации с шансом 5%
+		if x < 40:               # ген генерации с шансом 40%
 			x = random(0,99)
-			if x >= 0 and x < 90:    # уровень 1 с шансом 90%
+			if x < 90:               # уровень 1 с шансом 90%
 				return (5, 1) 
 
-			elif x >= 90 and x < 99: # уровень 2 с шансом 9%
+			elif x < 99:             # уровень 2 с шансом 9%
 				return (5, 2) 
 
-			elif x == 99:            # уровень 3 с шансом 1%
+			elif x < 100:            # уровень 3 с шансом 1%
 				return (5, 3) 
 
-		elif x >= 80 and x < 90: # ген поедания бактерии с шансом 10%
+		elif x < 60:             # ген поедания бактерии с шансом 20%
 			return (4, random(1,4)) 
 
-		elif x >= 90 and x < 99: # ген размножения с шансом 9%
+		elif x < 99:             # ген размножения с шансом 39%
 			return (3, random(1,4)) 
 
-		elif x == 99:            # ген мутации с шансом 1%
+		elif x < 100:            # ген мутации с шансом 1%
 			return (2, 1)           
 
 		return (0, 0)
@@ -87,15 +85,14 @@ class Bacteria(Point):
 
 		# удаление бактерий без генов
 		if (len(self.gen) == 0) or (self.gen.get(0)[0] != 2):
-			self.set_bacteria(*self.pos, 0)
-			return
+			# self.set_bacteria(*self.pos, 0)
+			self.gen.bytes = b'\x02\x00'
+			# print('удаление бактерий без генов')
+			# return
 
 		# удаление бактерий без энергии
 		if (self.enegry < 0):
 			self.set_bacteria(*self.pos, 0)
-			return
-
-		if len(self.gen) == 0:
 			return
 
 		if self.enegry > 1000:
@@ -107,7 +104,10 @@ class Bacteria(Point):
 		gen, arg = self.gen.get(self.index)
 
 		# движение
-		if gen == 1:
+		if gen == 0:
+			self.gen.rem(self.index)
+
+		elif gen == 1:
 			zx, zy = self.get_direction(arg)
 			pos = (self.x+zx, self.y+zy)
 
@@ -128,30 +128,29 @@ class Bacteria(Point):
 		elif gen == 2:
 			x = random(0,100)
 
-			# замена гена шанс 50%
-			if x >= 0 and x < 50:
-				index = random(0, len(self.gen)-1)
-				gen2, arg2 = self.gen.get(index)
-				if (gen2 != 2) and (arg2 != 0):
+			# замена гена шанс 52%
+			if x < 53:
+				if len(self.gen) > 1:
+					index = random(1, len(self.gen)-1)
 					self.gen.set(index, self.get_random_gen())
 					self.enegry -= self.cost.mutation
 
-			# добавление гена шанс 30%
-			elif x >= 50 and x < 80 and len(self.gen) < 15:
-				self.gen += self.get_random_gen()
-				self.enegry -= self.cost.mutation
+			# добавление гена шанс 40%
+			elif x < 93:
+				if len(self.gen) < 15:
+					self.gen += self.get_random_gen()
+					self.enegry -= self.cost.mutation
 
-			# удаление гена 10%
-			elif x >= 80 and x < 90:
-				index = random(0, len(self.gen)-1)
-				gen2, arg2 = self.gen.get(index)
-				if (gen2 != 2) and (arg2 != 0):
+			# удаление гена 5%
+			elif x < 98:
+				if len(self.gen) > 1:
+					index = random(1, len(self.gen)-1)
 					self.gen.rem(index)
 					self.enegry += 2.5
 					self.enegry -= self.cost.mutation
 
-			# изменение цвета 3%
-			elif x >= 90 and x < 93:
+			# изменение цвета 2%
+			elif x < 100:
 				arg = random(-16, 16)
 				index = random(0,2)
 				self.color[index] += arg
@@ -162,9 +161,9 @@ class Bacteria(Point):
 				self.enegry -= self.cost.mutation
 
 			# изменение цены хода 7%
-			elif x >= 93 and x < 100:
-				self.cost.move = random(20,200)/100
-				self.enegry -= self.cost.mutation
+			# elif x >= 93 and x < 100:
+			# 	self.cost.move = random(20,200)/100
+			# 	self.enegry -= self.cost.mutation
 
 		# копирование
 		elif gen == 3:

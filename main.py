@@ -13,15 +13,10 @@ class LList(list):
 		super().__init__(args)
 
 	def __getitem__(self, index):
-		if index >= len(self):
-			return self[index % len(self)]
-		else:
-			return super().__getitem__(index)
+		return super().__getitem__(index % len(self))
 
 	def __setitem__(self, index, value):
-		if index >= len(self):
-			index %= len(self)
-		super().__setitem__(index, value)
+		super().__setitem__(index % len(self), value)
 
 font = pygame.font.SysFont('Consolas', 16)
 
@@ -57,7 +52,7 @@ class App(Base):
 
 		class fps:
 			event = 60
-			update = 20
+			update = 60
 			draw = 60
 
 		self.clock = clock
