@@ -71,9 +71,10 @@ class App(Base):
 		self.bacteria = LList(*[LList(*[0]*self.sw) for _ in range(self.sh)])
 		self.pause = False
 			
-		# шанс спавна бактерий (%)
-		chance = 10
+		self.spawn()
 
+	def spawn(self, chance = 10):
+		# chance - шанс спавна бактерий (%)
 		for x in range(self.sw):
 			for y in range(self.sh):
 				if randint(0, 99) < chance:
@@ -96,6 +97,9 @@ class App(Base):
 				elif event.type == KEYDOWN:
 					if event.key == pygame.K_SPACE:
 						self.pause = not self.pause
+
+					elif event.key == pygame.K_r:
+						self.spawn()
 
 			self.clock.event.tick(self.fps.event)
 

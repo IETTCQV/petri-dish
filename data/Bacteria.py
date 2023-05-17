@@ -4,6 +4,23 @@ from .Point import *
 from random import randint as random
 from pygame import draw
 
+
+def bytes_similarity(str1: bytes, str2: bytes) -> float:
+	"""
+	Функция расчета коэффициента равенства двух байтовых строк.
+
+	:param str1: Первая байтовая строка.
+	:param str2: Вторая байтовая строка.
+	:return: Коэффициент равенства двух байтовых строк.
+	"""
+	if len(str1) != len(str2):
+		return 0.0
+
+	match_count = sum(1 for b1, b2 in zip(str1, str2) if b1 == b2)
+	similarity = match_count / len(str1)
+	return similarity
+
+
 class Bacteria(Point):
 	def init(self, app, pos):
 		self.pos = list(pos) # строка из Point класса
@@ -12,8 +29,8 @@ class Bacteria(Point):
 
 		self.gen = Gen()
 		self.gen += (2, 0)
-		for _ in range(random(1,3)):
-			self.gen += self.get_random_gen()
+		# for _ in range(random(1,3)):
+		# 	self.gen += self.get_random_gen()
 
 		self.index = 0
 
@@ -151,8 +168,8 @@ class Bacteria(Point):
 			zx, zy = self.get_direction(arg)
 			pos = (self.x+zx, self.y+zy)
 			bacteria = self.get_bacteria(*pos)
-
-			if (bacteria != 0) and (bacteria.gen.bytes != self.gen.bytes):
+			
+			if (bacteria != 0) and bytes_similarity(self.gen.bytes, bacteria.gen.bytes) < 0.8:
 				self.enegry += bacteria.enegry / 2
 				bacteria.enegry = -1
 				self.set_bacteria(*pos, 0)
