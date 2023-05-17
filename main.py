@@ -47,8 +47,8 @@ class App(Base):
 		
 		self.block = block      # размер блока
 		self.wh = [size*block*self.wm, size*block*self.hm]
-		self.sw = self.w//block # ширина окна в блоках
-		self.sh = self.h//block # высота окна в блоках
+		self.sw = int(self.w//block) # ширина окна в блоках
+		self.sh = int(self.h//block) # высота окна в блоках
 
 		class clock:
 			event = pygame.time.Clock()
@@ -92,11 +92,15 @@ class App(Base):
 
 				if event.type == QUIT:
 					self.running = False
-					continue
+					break
 
 				elif event.type == KEYDOWN:
 					if event.key == pygame.K_SPACE:
 						self.pause = not self.pause
+
+					elif event.key == pygame.K_ESCAPE:
+						self.running = False
+						break
 
 					elif event.key == pygame.K_r:
 						self.spawn()
@@ -165,5 +169,5 @@ class App(Base):
 
 
 if __name__ == '__main__':
-	app = App(size=5, block=16)
+	app = App(size=7.5, block=16)
 	app.run()
