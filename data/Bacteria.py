@@ -13,8 +13,8 @@ def bytes_similarity(str1: bytes, str2: bytes) -> float:
 	:param str2: Вторая байтовая строка.
 	:return: Коэффициент равенства двух байтовых строк.
 	"""
-	if len(str1) != len(str2):
-		return 0.0
+	# if len(str1) != len(str2):
+	# 	return 0.0
 
 	match_count = sum(1 for b1, b2 in zip(str1, str2) if b1 == b2)
 	similarity = match_count / len(str1)
@@ -34,9 +34,14 @@ class Bacteria(Point):
 
 		self.index = 0
 
+		class cost:
+			move = random(20,200)/100
+			mutation = 5
+			copy = 50
+
+		self.cost = cost
 		self.enegry = random(7,15)
-		self.cost_move = random(20,200)/100
-		self.generation_efficiency = 2
+		self.efficiency = 2
 
 	def get_direction(self, x):
 		if x == 1:   return  1,  0
@@ -47,17 +52,28 @@ class Bacteria(Point):
 
 	def get_random_gen(self):
 		x = random(0,99)
-		if x >= 0 and x < 80:
-			return (1, random(1,4)) # ген передвижения с шансом 80%
+		if x >= 0 and x < 75:    # ген передвижения с шансом 75%
+			return (1, random(1,4)) 
 
-		elif x >= 80 and x < 90:
-			return (4, random(1,4)) # ген поедания бактерии с шансом 10%
+		elif x >= 75 and x < 80: # ген генерации с шансом 5%
+			x = random(0,99)
+			if x >= 0 and x < 90:    # уровень 1 с шансом 90%
+				return (5, 1) 
 
-		elif x >= 90 and x < 99:
-			return (3, random(1,4)) # ген размножения с шансом 9%
+			elif x >= 90 and x < 99: # уровень 2 с шансом 9%
+				return (5, 2) 
 
-		elif x == 99:
-			return (2, 1)           # ген мутации с шансом 1%
+			elif x == 99:            # уровень 3 с шансом 1%
+				return (5, 3) 
+
+		elif x >= 80 and x < 90: # ген поедания бактерии с шансом 10%
+			return (4, random(1,4)) 
+
+		elif x >= 90 and x < 99: # ген размножения с шансом 9%
+			return (3, random(1,4)) 
+
+		elif x == 99:            # ген мутации с шансом 1%
+			return (2, 1)           
 
 		return (0, 0)
 
@@ -95,7 +111,7 @@ class Bacteria(Point):
 			zx, zy = self.get_direction(arg)
 			pos = (self.x+zx, self.y+zy)
 
-			if self.get_bacteria(*pos) == 0:
+			if (self.get_bacteria(*pos) == 0):
 				self.set_bacteria(*pos, self)
 				self.set_bacteria(*self.pos, 0)
 				self.x += zx
@@ -106,6 +122,7 @@ class Bacteria(Point):
 
 				if self.y >= self.app.sh: self.y = 0
 				elif self.y < 0: self.y = self.app.sh-1
+				self.enegry -= self.cost.move
 				
 		# мутация генов
 		elif gen == 2:
@@ -117,12 +134,12 @@ class Bacteria(Point):
 				gen2, arg2 = self.gen.get(index)
 				if (gen2 != 2) and (arg2 != 0):
 					self.gen.set(index, self.get_random_gen())
+					self.enegry -= self.cost.mutation
 
 			# добавление гена шанс 30%
 			elif x >= 50 and x < 80 and len(self.gen) < 15:
-				if self.enegry > 5:
-					self.gen += self.get_random_gen()
-					self.enegry -= 5
+				self.gen += self.get_random_gen()
+				self.enegry -= self.cost.mutation
 
 			# удаление гена 10%
 			elif x >= 80 and x < 90:
@@ -131,6 +148,7 @@ class Bacteria(Point):
 				if (gen2 != 2) and (arg2 != 0):
 					self.gen.rem(index)
 					self.enegry += 2.5
+					self.enegry -= self.cost.mutation
 
 			# изменение цвета 3%
 			elif x >= 90 and x < 93:
@@ -141,41 +159,44 @@ class Bacteria(Point):
 					self.color[index] = 255
 				elif self.color[index] < 0:
 					self.color[index] = 0
+				self.enegry -= self.cost.mutation
 
 			# изменение цены хода 7%
 			elif x >= 93 and x < 100:
-				if self.enegry > 10:
-					self.cost_move = random(20,200)/100
-					self.enegry -= 10
+				self.cost.move = random(20,200)/100
+				self.enegry -= self.cost.mutation
 
 		# копирование
 		elif gen == 3:
 			zx, zy = self.get_direction(arg)
 			pos = (self.x+zx, self.y+zy)
 
-			if (self.get_bacteria(*pos) == 0) and self.enegry > 50:
+			if (self.get_bacteria(*pos) == 0) and (self.enegry > self.cost.copy):
 				bacteria = Bacteria(self.app, pos)
 				bacteria.color = self.color.copy()
-				# bacteria.enegry = 10
-				bacteria.cost_move = self.cost_move
+				bacteria.enegry = self.cost.copy/2
+				bacteria.cost.move = self.cost.move
 				bacteria.gen = self.gen.copy()
 
 				self.set_bacteria(*pos, bacteria)
-				self.enegry -= 50
+				self.enegry -= self.cost.copy
 
 		# поедание других
 		elif gen == 4:
 			zx, zy = self.get_direction(arg)
 			pos = (self.x+zx, self.y+zy)
 			bacteria = self.get_bacteria(*pos)
-			
+
 			if (bacteria != 0) and bytes_similarity(self.gen.bytes, bacteria.gen.bytes) < 0.8:
 				self.enegry += bacteria.enegry / 2
 				bacteria.enegry = -1
 				self.set_bacteria(*pos, 0)
 
-		self.enegry -= self.cost_move
-		self.enegry += self.generation_efficiency * (1-self.x/(self.app.sw-1))
+		# генерация энергии
+		elif gen == 5:
+			self.enegry += arg * self.efficiency * (1-self.x/(self.app.sw-1))
+
+		self.enegry += self.efficiency * (1-self.x/(self.app.sw-1))
 		self.index += 1
 
 	def draw(self):
