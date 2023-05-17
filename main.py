@@ -72,7 +72,7 @@ class App(Base):
 		self.pause = False
 			
 		# шанс спавна бактерий (%)
-		chance = 1
+		chance = 10
 
 		for x in range(self.sw):
 			for y in range(self.sh):
@@ -128,12 +128,18 @@ class App(Base):
 				x,y = x2,y2 = pygame.mouse.get_pos()
 				x //= self.block
 				y //= self.block
-				if self.bacteria[y][x] != 0:
-					text = str(self.bacteria[y][x].gen)
+
+				bacteria = self.bacteria[y][x]
+				if bacteria != 0:
+					text = []
+					for i in range(len(bacteria.gen)):
+						gen, arg = bacteria.gen.get(i)
+						text.append(f'{gen}-{arg}')
+					text = ','.join(text)
 					image = font.render(text, True, (200,0,0), (0,0,0))
 					self.win.blit(image, (x2+10, y2+10))
 
-					text = "enegry: "+str(self.bacteria[y][x].enegry)
+					text = "e: "+str(round(bacteria.enegry, 1))
 					image = font.render(text, True, (200,0,0), (0,0,0))
 					self.win.blit(image, (x2+10, y2+30))
 

@@ -17,8 +17,8 @@ class Bacteria(Point):
 
 		self.index = 0
 
-		self.enegry = 10
-		self.cost_move = 1.2
+		self.enegry = random(7,15)
+		self.cost_move = random(20,200)/100
 		self.generation_efficiency = 2
 
 	def get_direction(self, x):
@@ -34,10 +34,13 @@ class Bacteria(Point):
 			return (1, random(1,4)) # ген передвижения с шансом 80%
 
 		elif x >= 80 and x < 90:
-			return (3, random(1,4)) # ген поедания бактерии с шансом 10%
+			return (4, random(1,4)) # ген поедания бактерии с шансом 10%
 
-		elif x >= 90 and x < 100:
-			return (3, random(1,4)) # ген размножения с шансом 10%
+		elif x >= 90 and x < 99:
+			return (3, random(1,4)) # ген размножения с шансом 9%
+
+		elif x == 99:
+			return (2, 1)           # ген мутации с шансом 1%
 
 		return (0, 0)
 
@@ -95,7 +98,7 @@ class Bacteria(Point):
 			if x >= 0 and x < 50:
 				index = random(0, len(self.gen)-1)
 				gen2, arg2 = self.gen.get(index)
-				if gen2 != 2:
+				if (gen2 != 2) and (arg2 != 0):
 					self.gen.set(index, self.get_random_gen())
 
 			# добавление гена шанс 30%
@@ -108,7 +111,7 @@ class Bacteria(Point):
 			elif x >= 80 and x < 90:
 				index = random(0, len(self.gen)-1)
 				gen2, arg2 = self.gen.get(index)
-				if gen2 != 2:
+				if (gen2 != 2) and (arg2 != 0):
 					self.gen.rem(index)
 					self.enegry += 2.5
 
